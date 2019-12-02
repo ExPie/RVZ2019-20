@@ -1,0 +1,8 @@
+body {
+	font-family: 'Inconsolata';
+	font-size: 22px;
+}
+
+#mainCanvas {
+	outline: black 3px solid;
+}
