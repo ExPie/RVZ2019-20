@@ -4,10 +4,14 @@
 	<title>Midi app</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
 	<link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet'>
+	<script src="js/audiosynth.js"></script>
+	<script src="https://colxi.info/midi-parser-js/src/main.js"></script>
 	<script src="main.js"></script>
 </head>
 <body>
 	<h1>This is my window - Nice</h1>
 	<canvas id="mainCanvas" width="1280" height="720"></canvas>
+	<button id="btn1" onclick="fnPlayNote('C', 4);">Hey</button>
+	<input type="file" id="filereader"/>
 </body>
 </html>
