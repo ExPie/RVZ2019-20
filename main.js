@@ -1,7 +1,18 @@
+// canvas globals
 var canvas;
 var ctx;
 var cWidth;
 var cHeight;
+
+// anim control globals
+var animStartTime;
+var animLastTime;
+var animTotalTime;
+var animDeltaTime; 
+
+// test circle
+var xpos = 0;
+
 
 window.onload = function () {
     main();
@@ -9,7 +20,7 @@ window.onload = function () {
 
 // for async funtions await sleep(ms);
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // used for playing sounds
@@ -57,4 +68,58 @@ function main() {
 	   
 
 
+
+	drawWelcomeScreen();
+
+	var button = document.getElementById("btn1");
+	button.addEventListener('click', function() {
+		startBasicAnimation();
+	}, false);
+
+}
+
+function drawWelcomeScreen() {
+	ctx.clearRect(0, 0, cWidth, cHeight);
+
+	ctx.textAlign = "center";
+	ctx.font = "48px sans-serif";
+	ctx.fillText('Welcome to the MIDI game', cWidth / 2, cHeight / 4); 
+
+	ctx.font = "32px sans-serif";
+	ctx.fillText('Upload a MIDI file to start playing', cWidth / 2, 3 * cHeight / 4); 
+}
+
+function startBasicAnimation() {
+	basicAnimFunc();
+}
+
+function basicAnimFunc(animCurrentTime) {
+	// do timing
+	if (!animStartTime) {animStartTime = animCurrentTime;}
+	if (!animLastTime) {animLastTime = animCurrentTime;}
+	animTotalTime = animCurrentTime - animStartTime;
+	animDeltaTime =animCurrentTime - animLastTime;
+	animLastTime = animCurrentTime;
+
+	
+	// do the drawing
+	ctx.clearRect(0, 0, cWidth, cHeight);
+
+	//calculate next x
+	var d = animDeltaTime / 4.6785;
+	if(d) xpos += d;
+	if (xpos > cWidth) xpos = 0;
+
+	xpos = Math.round(xpos);
+
+	//console.log(animDeltaTime);
+	console.log(d);
+
+	ctx.beginPath();
+	ctx.arc(xpos, cHeight/2, 50, 0, 2 * Math.PI);
+	ctx.stroke();
+	ctx.save();
+
+	// new frame is requested
+	requestAnimationFrame(basicAnimFunc);
 }
