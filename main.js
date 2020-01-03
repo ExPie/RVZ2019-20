@@ -1,7 +1,16 @@
+var canvas;
+var ctx;
+var cWidth;
+var cHeight;
+
 window.onload = function () {
     main();
 };
 
+// for async funtions await sleep(ms);
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // used for playing sounds
 function fnPlayNote(note, octave) {
@@ -14,13 +23,22 @@ function fnPlayNote(note, octave) {
 		/*document.body.appendChild(container);*/
 		container.load();
 		return container;
-};
+}
+
+async function testDelay() {
+	fnPlayNote('C', 4);
+	await sleep(2000);
+	fnPlayNote('D', 4);
+}
 
 function main() {
-	var c = document.getElementById("mainCanvas");
-	var ctx = c.getContext("2d");
+	canvas = document.getElementById("mainCanvas");
+	ctx = canvas.getContext("2d");
+	cWidth = canvas.width;
+	cHeight = canvas.height;
+
 	ctx.moveTo(0, 0);
-	ctx.lineTo(1280, 720);
+	ctx.lineTo(cWidth, cHeight);
 	ctx.stroke();
 
 	//var piano = Synth.createInstrument('piano');
