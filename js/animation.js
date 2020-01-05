@@ -1,8 +1,9 @@
 // globals
 var g_keys = ["a", "s", "d", "f", "g"];
+var circleSpeed = 4;
 
 var test_json = {
-	"speed": 2,
+	"speed": 1000,
 	"circles": [
 		{
 			"startTime": 0,
@@ -10,34 +11,42 @@ var test_json = {
 			"notes": [
 				{
 					"pitch": 65,
-					"duration": 2,
+					"duration": 400,
 					"delay": 0
 				},
 				{
 					"pitch": 67,
-					"duration": 2,
-					"delay": 1
+					"duration": 400,
+					"delay": 200
 				}
 			]
 		},
 		{
-			"startTime": 4,
+			"startTime": 1000,
 			"lane": 3,
 			"notes": [
 				{
 					"pitch": 69,
-					"duration": 2,
+					"duration": 400,
 					"delay": 0
 				},
 				{
 					"pitch": 65,
-					"duration": 4,
-					"delay": 2
+					"duration": 600,
+					"delay": 200
 				}
 			]
 		}
 	]
 }
+
+
+// circles storage
+var g_circles = [];
+
+// anim controls
+var a_startTime;
+var a_currentCircleSearchIndex;
 
 // test circle
 var ypos = 0;
@@ -51,12 +60,17 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 	// draw lanes
 	drawGridLanes();
 
-
+	// draw circles
+	if(!a_startTime && animCurrentTime) {
+		a_startTime = animCurrentTime;
+		g_circles.push(test_json.circles[0]);
+	}
+	drawCircles(animCurrentTime);
 
 
 
 	//calculate next x
-	var d = animDeltaTime / 4.6785;
+	var d = animDeltaTime / circleSpeed;
 	if(d) ypos += d;
 	if (ypos > cHeight) ypos = 0;
 
@@ -69,6 +83,38 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 	ctx.arc(5 * cWidth / 10, ypos, 50, 0, 2 * Math.PI);
 	ctx.stroke();
 	ctx.save();
+}
+
+// draws the circles from circle storage
+function drawCircles(animCurrentTime) {
+	var currentTime = animCurrentTime - a_startTime;
+
+	for(var i = 0; i < g_circles.length; i++) {
+		var circle = g_circles[i];
+
+		var circleHitTime = circle.startTime;
+		var currentTimeNorm = currentTime * test_json.speed;
+		var deltaHit = currentTimeNorm - circleHitTime;
+
+
+		// TODO find A BETTER WAY -> delay the things
+
+
+		if(deltaHit > -1000) {
+			var pixelsFromBar = deltaHit * circleSpeed;
+			ctx.beginPath();
+			var xposition = Math.round((circle.lane * 2 + 1) * cWidth / 10);
+			var yposition = Math.round(4 * cHeight / 5 + pixelsFromBar);
+			console.log(yposition);
+			ctx.arc(xposition, yposition, 50, 0, 2 * Math.PI);
+			ctx.stroke();
+			ctx.save();
+		}
+
+		if(deltaHit > 200) {
+			// fail game
+		}
+	}
 }
 
 // draw lanes for falling notes

@@ -21,8 +21,8 @@ function sleep(ms) {
 }
 
 // used for playing sounds
-function fnPlayNote(note, octave) {
-		var src = Synth.generate('piano', note, octave, 2);
+function fnPlayNote(note, octave, time) {
+		var src = Synth.generate('piano', note, octave, time);
 		container = new Audio(src);
 		container.addEventListener('ended', function() { container = null; });
 		container.addEventListener('loadeddata', function(e) { e.target.play(); });
@@ -34,9 +34,39 @@ function fnPlayNote(note, octave) {
 }
 
 async function testDelay() {
-	fnPlayNote('C', 4);
-	await sleep(2000);
-	fnPlayNote('D', 4);
+	fnPlayNote('C', 4, 1.5);
+	await sleep(500);	
+	fnPlayNote('C', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('C', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('C', 4, 1.5);
+	await sleep(500);
+	
+	fnPlayNote('D', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('D', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('D', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('D', 4, 1.5);
+	await sleep(500);
+
+	fnPlayNote('E', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('E', 4, 1.5);
+	await sleep(500);
+
+	fnPlayNote('D', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('D', 4, 1.5);
+	await sleep(500);
+
+	fnPlayNote('C', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('C', 4, 1.5);
+	await sleep(500);
+	fnPlayNote('C', 4, 1.5);
 }
 
 function main() {
