@@ -10,9 +10,6 @@ var animLastTime;
 var animTotalTime;
 var animDeltaTime; 
 
-// test circle
-var xpos = 0;
-
 
 window.onload = function () {
     main();
@@ -102,23 +99,7 @@ function basicAnimFunc(animCurrentTime) {
 	animLastTime = animCurrentTime;
 
 	
-	// do the drawing
-	ctx.clearRect(0, 0, cWidth, cHeight);
-
-	//calculate next x
-	var d = animDeltaTime / 4.6785;
-	if(d) xpos += d;
-	if (xpos > cWidth) xpos = 0;
-
-	xpos = Math.round(xpos);
-
-	//console.log(animDeltaTime);
-	console.log(d);
-
-	ctx.beginPath();
-	ctx.arc(xpos, cHeight/2, 50, 0, 2 * Math.PI);
-	ctx.stroke();
-	ctx.save();
+	mainDraw(animCurrentTime, animDeltaTime);
 
 	// new frame is requested
 	requestAnimationFrame(basicAnimFunc);
