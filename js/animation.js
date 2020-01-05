@@ -1,6 +1,44 @@
 // globals
 var g_keys = ["a", "s", "d", "f", "g"];
 
+var test_json = {
+	"speed": 2,
+	"circles": [
+		{
+			"startTime": 0,
+			"lane": 1,
+			"notes": [
+				{
+					"pitch": 65,
+					"duration": 2,
+					"delay": 0
+				},
+				{
+					"pitch": 67,
+					"duration": 2,
+					"delay": 1
+				}
+			]
+		},
+		{
+			"startTime": 4,
+			"lane": 3,
+			"notes": [
+				{
+					"pitch": 69,
+					"duration": 2,
+					"delay": 0
+				},
+				{
+					"pitch": 65,
+					"duration": 4,
+					"delay": 2
+				}
+			]
+		}
+	]
+}
+
 // test circle
 var ypos = 0;
 
@@ -12,6 +50,10 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 
 	// draw lanes
 	drawGridLanes();
+
+
+
+
 
 	//calculate next x
 	var d = animDeltaTime / 4.6785;
@@ -43,7 +85,7 @@ function drawGridLanes() {
 	for (var i = 0; i < 5; i++) {
 		ctx.textAlign = "center";
 		ctx.font = "48px sans-serif";
-		ctx.fillText(g_keys[i], (i * 2 + 1) * cWidth / 10, 9 * cHeight / 10); 
+		ctx.fillText(g_keys[i].toUpperCase(), (i * 2 + 1) * cWidth / 10, 9 * cHeight / 10); 
 	}
 
 	// draw vertical lines
@@ -56,3 +98,22 @@ function drawGridLanes() {
 		ctx.stroke();
 	}
 }
+
+
+
+// key listner
+function listenKeys(e) {
+	var lane = -1;
+
+	switch(e.keyCode) {
+		case 65: lane = 0; break;
+		case 83: lane = 1; break;
+		case 68: lane = 2; break;
+		case 70: lane = 3; break;
+		case 71: lane = 4; break;
+		default: return;
+	}
+
+	alert("lane" + (lane + 1));
+}
+

@@ -45,9 +45,11 @@ function main() {
 	cWidth = canvas.width;
 	cHeight = canvas.height;
 
-	ctx.moveTo(0, 0);
-	ctx.lineTo(cWidth, cHeight);
-	ctx.stroke();
+	// add key lister
+	window.addEventListener("keydown", listenKeys, false);
+
+
+	console.log(test_json);
 
 	//var piano = Synth.createInstrument('piano');
 	//piano.play('C', 4, 2);
@@ -55,13 +57,13 @@ function main() {
 
 
 
-	        // configure MIDIReader
-	        var source = document.getElementById('filereader');
-	        MidiParser.parse( source, function(obj){
-	            // Your callback function
-	            console.log(obj);
-	            document.getElementById("output").innerHTML = JSON.stringify(obj, undefined, 2);
-	        });
+    // configure MIDIReader
+    var source = document.getElementById('filereader');
+    MidiParser.parse( source, function(obj){
+        // Your callback function
+        console.log(obj);
+        document.getElementById("output").innerHTML = JSON.stringify(obj, undefined, 2);
+    });
 	   
 
 
