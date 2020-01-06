@@ -91,14 +91,15 @@ function main() {
 
 
     // configure MIDIReader
-    var source = document.getElementById('filereader');
-    MidiParser.parse(source, function(obj){
-        // Your callback function
-        //console.log(obj);
-        
-        parseFile(source);
-    });
-    
+    document.getElementById("filereader").addEventListener("change", e => {
+				//get the files
+				const files = e.target.files;
+				if (files.length > 0){
+					const file = files[0];
+					//document.querySelector("#FileDrop #Text").textContent = file.name;
+					parseFile(file);
+				}
+	});
 
 
 	drawWelcomeScreen();
@@ -110,12 +111,18 @@ function main() {
 
 }
 
-
-async function parseFile(file){
-			//read the file
-    const midi = await Midi.fromUrl(file);
-    console.log(midi);
+// parse midi
+function parseFile(file){
+	//read the file
+	const reader = new FileReader()
+	reader.onload = function(e){
+		const midi = new Midi(e.target.result);
+		//console.log(JSON.stringify(midi, undefined, 2));
+		console.log(midi); // its here!
+	}
+	reader.readAsArrayBuffer(file);
 }
+
 
 function drawWelcomeScreen() {
 	ctx.clearRect(0, 0, cWidth, cHeight);
