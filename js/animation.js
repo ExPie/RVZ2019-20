@@ -1,12 +1,12 @@
 // globals
 var g_keys = ["a", "s", "d", "f", "g"];
-var circleSpeed = 4;
+var circleSpeed = 1/4;
 
 var test_json = {
 	"speed": 1000,
 	"circles": [
 		{
-			"startTime": 0,
+			"startTime": 3000,
 			"lane": 1,
 			"notes": [
 				{
@@ -22,7 +22,7 @@ var test_json = {
 			]
 		},
 		{
-			"startTime": 1000,
+			"startTime": 5000,
 			"lane": 3,
 			"notes": [
 				{
@@ -48,9 +48,6 @@ var g_circles = [];
 var a_startTime;
 var a_currentCircleSearchIndex;
 
-// test circle
-var ypos = 0;
-
 
 function mainDraw(animCurrentTime, animDeltaTime) {
 	// do the drawing
@@ -64,44 +61,30 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 	if(!a_startTime && animCurrentTime) {
 		a_startTime = animCurrentTime;
 		g_circles.push(test_json.circles[0]);
+		g_circles.push(test_json.circles[1]);
 	}
 	drawCircles(animCurrentTime);
 
-
-
-	//calculate next x
-	var d = animDeltaTime / circleSpeed;
-	if(d) ypos += d;
-	if (ypos > cHeight) ypos = 0;
-
-	ypos = Math.round(ypos);
-
-	//console.log(animDeltaTime);
-	//console.log(d);
-
-	ctx.beginPath();
-	ctx.arc(5 * cWidth / 10, ypos, 50, 0, 2 * Math.PI);
-	ctx.stroke();
-	ctx.save();
+	
 }
 
 // draws the circles from circle storage
 function drawCircles(animCurrentTime) {
 	var currentTime = animCurrentTime - a_startTime;
+	var currentTimeNorm = currentTime * test_json.speed / 1000;
 
 	for(var i = 0; i < g_circles.length; i++) {
 		var circle = g_circles[i];
 
 		var circleHitTime = circle.startTime;
-		var currentTimeNorm = currentTime * test_json.speed;
 		var deltaHit = currentTimeNorm - circleHitTime;
+		var deltaHitMs = deltaHit / test_json.speed * 1000;
+		var pixelsFromBar = deltaHitMs * circleSpeed;
 
 
-		// TODO find A BETTER WAY -> delay the things
-
-
-		if(deltaHit > -1000) {
-			var pixelsFromBar = deltaHit * circleSpeed;
+		if(pixelsFromBar > -1000) {
+			ctx.strokeStyle = "black";
+			if(pixelsFromBar > -50 && pixelsFromBar < 50) ctx.strokeStyle = "blue"; // check for hits here
 			ctx.beginPath();
 			var xposition = Math.round((circle.lane * 2 + 1) * cWidth / 10);
 			var yposition = Math.round(4 * cHeight / 5 + pixelsFromBar);
