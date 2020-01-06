@@ -92,13 +92,13 @@ function main() {
 
     // configure MIDIReader
     var source = document.getElementById('filereader');
-    MidiParser.parse( source, function(obj){
+    MidiParser.parse(source, function(obj){
         // Your callback function
-        console.log(obj);
-        document.getElementById("output").innerHTML = JSON.stringify(obj, undefined, 2);
+        //console.log(obj);
+        
+        parseFile(source);
     });
-	   
-
+    
 
 
 	drawWelcomeScreen();
@@ -108,6 +108,13 @@ function main() {
 		startBasicAnimation();
 	}, false);
 
+}
+
+
+async function parseFile(file){
+			//read the file
+    const midi = await Midi.fromUrl(file);
+    console.log(midi);
 }
 
 function drawWelcomeScreen() {
