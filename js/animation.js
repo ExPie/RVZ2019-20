@@ -78,6 +78,35 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 	
 }
 
+// change demo data with actual data
+function parseData(midi) {
+
+
+
+	var customNote = [];
+
+	for(var i = 0; i < midi.tracks[0].notes.length; i++) {
+		var note = midi.tracks[0].notes[i];
+		console.log(note);
+		var jsonNote = {};
+		jsonNote["startTime"] = note.time * 1000 + 3000;
+		jsonNote.lane = i % 5;
+
+		var jsonNote2 = {};
+		jsonNote2.pitch = note.midi;
+		jsonNote2.duration = note.duration = note.duration * 1000;
+		jsonNote2.delay = 0;
+		
+		jsonNote.notes = [jsonNote2];
+
+		customNote.push(jsonNote);
+	}
+
+	test_json.circles = customNote;
+	console.log(test_json);
+	startBasicAnimation();
+}
+
 // draws the circles from circle storage
 function drawCircles(animCurrentTime) {
 	var currentTime = animCurrentTime - a_startTime;

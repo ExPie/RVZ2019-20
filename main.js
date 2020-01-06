@@ -118,7 +118,8 @@ function parseFile(file){
 	reader.onload = function(e){
 		const midi = new Midi(e.target.result);
 		//console.log(JSON.stringify(midi, undefined, 2));
-		console.log(midi); // its here!
+		//console.log(midi); // its here!
+		parseData(midi);
 	}
 	reader.readAsArrayBuffer(file);
 }
