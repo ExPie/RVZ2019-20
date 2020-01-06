@@ -68,8 +68,11 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 	// draw circles
 	if(!a_startTime && animCurrentTime) {
 		a_startTime = animCurrentTime;
-		g_circles.push(test_json.circles[0]);
-		g_circles.push(test_json.circles[1]);
+
+		for(var i = 0; i < test_json.circles.length; i++)
+			g_circles.push(test_json.circles[i]);
+		//g_circles.push(test_json.circles[0]);
+		//g_circles.push(test_json.circles[1]);
 	}
 	drawCircles(a_currentTime);
 
