@@ -44,6 +44,9 @@ var test_json = {
 // circles storage
 var g_circles = [];
 
+// hit anim storage
+var g_hitAnim = []; // (lane, timeStart)
+
 // anim controls
 var a_startTime;
 var a_currentCircleSearchIndex;
@@ -57,6 +60,7 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 
 	// update global
 	a_currentTime = animCurrentTime;
+	ctx.fillStyle = "black";
 
 	// draw lanes
 	drawGridLanes();
@@ -67,8 +71,10 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 		g_circles.push(test_json.circles[0]);
 		g_circles.push(test_json.circles[1]);
 	}
-	drawCircles(animCurrentTime);
+	drawCircles(a_currentTime);
 
+	// draw hit animations
+	drawHitAnim();
 	
 }
 
@@ -80,7 +86,7 @@ function drawCircles(animCurrentTime) {
 	for(var i = 0; i < g_circles.length; i++) {
 		var circle = g_circles[i];
 
-		var circleHitTime = circle.startTime;
+		var circleHitTime = circle.startTime * test_json.speed / 1000;
 		var deltaHit = currentTimeNorm - circleHitTime;
 		var deltaHitMs = deltaHit / test_json.speed * 1000;
 		var pixelsFromBar = deltaHitMs * circleSpeed;
@@ -88,17 +94,17 @@ function drawCircles(animCurrentTime) {
 
 		if(pixelsFromBar > -1000) {
 			ctx.strokeStyle = "black";
-			if(pixelsFromBar > -50 && pixelsFromBar < 50) ctx.strokeStyle = "blue"; // check for hits here
+			if(pixelsFromBar > -50 && pixelsFromBar < 50) ctx.strokeStyle = "blue"; 
 			ctx.beginPath();
 			var xposition = Math.round((circle.lane * 2 + 1) * cWidth / 10);
 			var yposition = Math.round(4 * cHeight / 5 + pixelsFromBar);
-			console.log(yposition);
 			ctx.arc(xposition, yposition, 50, 0, 2 * Math.PI);
 			ctx.stroke();
 			ctx.save();
 		}
 
-		if(deltaHit > 200) {
+		if(pixelsFromBar > 100) {
+			alert("FAILED");
 			// fail game
 		}
 	}
@@ -132,6 +138,35 @@ function drawGridLanes() {
 	}
 }
 
+function drawHitAnim() {
+	var indRemove = [];
+	var len = 150;
+
+	for(var i = 0; i < g_hitAnim.length; i++) {
+		var ln = g_hitAnim[i][0];
+		var start = g_hitAnim[i][1];
+		var delta = a_currentTime - start;
+
+		if(delta >= len) { 
+			indRemove.unshift(i);
+			continue;
+		}
+
+		var grd = ctx.createLinearGradient(0, 4 * cHeight / 5 + delta * 2, 0, 3 * cHeight / 5);
+		grd.addColorStop(0, "blue");
+		grd.addColorStop(1, "white");
+
+		// Fill with gradient
+		ctx.fillStyle = grd;
+		ctx.fillRect(ln * cWidth / 5, 3 * cHeight / 5, cWidth / 5, cHeight / 5);
+		ctx.fillStyle = "black";
+	}
+
+	for(var i = 0; i < indRemove.length; i++) {
+		g_hitAnim.splice(indRemove[i], 1);
+	}
+}
+
 function checkHits(lane) {
 	var currentTime = a_currentTime - a_startTime;
 	var currentTimeNorm = currentTime * test_json.speed / 1000;
@@ -151,9 +186,11 @@ function checkHits(lane) {
 
 		if(pixelsFromBar > -50 && pixelsFromBar < 50) {
 			hitCircle = true;
-			// play anim
-			alert("hit");
+			// add to hit anim array
+			g_hitAnim.push([circle.lane, a_currentTime]);
+
 			// remove form array
+			g_circles.splice(i, 1);
 		}
 	}
 
