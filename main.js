@@ -78,7 +78,10 @@ function main() {
 	// add key lister
 	window.addEventListener("keydown", listenKeys, false);
 
+	// construct midi note translate table
+	fillMidiNumArr();
 
+	console.log(g_midiNumArr);
 	console.log(test_json);
 
 	//var piano = Synth.createInstrument('piano');

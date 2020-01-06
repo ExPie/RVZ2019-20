@@ -17,7 +17,7 @@ var test_json = {
 				{
 					"pitch": 67,
 					"duration": 400,
-					"delay": 200
+					"delay": 1000
 				}
 			]
 		},
@@ -33,7 +33,7 @@ var test_json = {
 				{
 					"pitch": 65,
 					"duration": 600,
-					"delay": 200
+					"delay": 1000
 				}
 			]
 		}
@@ -45,7 +45,7 @@ var test_json = {
 var g_circles = [];
 
 // hit anim storage
-var g_hitAnim = []; // (lane, timeStart)
+var g_hitAnim = []; // (lane, timeStart, color)
 
 // anim controls
 var a_startTime;
@@ -86,7 +86,7 @@ function drawCircles(animCurrentTime) {
 	for(var i = 0; i < g_circles.length; i++) {
 		var circle = g_circles[i];
 
-		var circleHitTime = circle.startTime * test_json.speed / 1000;
+		var circleHitTime = circle.startTime;
 		var deltaHit = currentTimeNorm - circleHitTime;
 		var deltaHitMs = deltaHit / test_json.speed * 1000;
 		var pixelsFromBar = deltaHitMs * circleSpeed;
@@ -104,8 +104,7 @@ function drawCircles(animCurrentTime) {
 		}
 
 		if(pixelsFromBar > 100) {
-			alert("FAILED");
-			// fail game
+			startFailAnim();
 		}
 	}
 }
@@ -145,6 +144,7 @@ function drawHitAnim() {
 	for(var i = 0; i < g_hitAnim.length; i++) {
 		var ln = g_hitAnim[i][0];
 		var start = g_hitAnim[i][1];
+		var col = g_hitAnim[i][2];
 		var delta = a_currentTime - start;
 
 		if(delta >= len) { 
@@ -153,7 +153,7 @@ function drawHitAnim() {
 		}
 
 		var grd = ctx.createLinearGradient(0, 4 * cHeight / 5 + delta * 2, 0, 3 * cHeight / 5);
-		grd.addColorStop(0, "blue");
+		grd.addColorStop(0, col);
 		grd.addColorStop(1, "white");
 
 		// Fill with gradient
@@ -165,6 +165,23 @@ function drawHitAnim() {
 	for(var i = 0; i < indRemove.length; i++) {
 		g_hitAnim.splice(indRemove[i], 1);
 	}
+}
+
+
+// key listner
+function listenKeys(e) {
+	var lane = -1;
+
+	switch(e.keyCode) {
+		case 65: lane = 0; break;
+		case 83: lane = 1; break;
+		case 68: lane = 2; break;
+		case 70: lane = 3; break;
+		case 71: lane = 4; break;
+		default: return;
+	}
+
+	checkHits(lane);
 }
 
 function checkHits(lane) {
@@ -187,7 +204,10 @@ function checkHits(lane) {
 		if(pixelsFromBar > -50 && pixelsFromBar < 50) {
 			hitCircle = true;
 			// add to hit anim array
-			g_hitAnim.push([circle.lane, a_currentTime]);
+			g_hitAnim.push([circle.lane, a_currentTime, "blue"]);
+
+			// play the notes
+			notePlayer(circle.notes);
 
 			// remove form array
 			g_circles.splice(i, 1);
@@ -196,25 +216,29 @@ function checkHits(lane) {
 
 	if(!hitCircle) {
 		// fail game
-		alert("FAILED");
+		startFailAnim();
 	}
 }
 
+function startFailAnim() {
+	g_circles = [];
 
-
-// key listner
-function listenKeys(e) {
-	var lane = -1;
-
-	switch(e.keyCode) {
-		case 65: lane = 0; break;
-		case 83: lane = 1; break;
-		case 68: lane = 2; break;
-		case 70: lane = 3; break;
-		case 71: lane = 4; break;
-		default: return;
-	}
-
-	checkHits(lane);
+	for(var i = 0; i < 5; i++)
+		g_hitAnim.push([i, a_currentTime, "red"]);
 }
 
+async function notePlayer(notes) {
+	for(var i = 0; i < notes.length; i++) {
+		var note = notes[i];
+
+		var name = g_midiNumArr[note.pitch];
+		var time = note.duration / test_json.speed;
+		if(time < 1) time = 1; // sounds better?
+		var delay = 0;
+		if(i < notes.length - 1) delay = notes[i+1].delay - note.delay;
+		delay = delay / test_json.speed * 1000;
+
+		fnPlayNote(name[0], name[1], time);
+		await sleep(delay);
+	}
+}
