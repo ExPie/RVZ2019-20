@@ -223,6 +223,8 @@ function checkHits(lane) {
 function startFailAnim() {
 	g_circles = [];
 
+	playFailSound();
+
 	for(var i = 0; i < 5; i++)
 		g_hitAnim.push([i, a_currentTime, "red"]);
 }
@@ -241,4 +243,20 @@ async function notePlayer(notes) {
 		fnPlayNote(name[0], name[1], time);
 		await sleep(delay);
 	}
+}
+
+async function playFailSound() {
+	fnPlayNote('G', 4, 1);
+	fnPlayNote('G', 3, 1);
+	await sleep(200);	
+	fnPlayNote('G', 4, 1);
+	fnPlayNote('G', 3, 1);
+	await sleep(200);
+	fnPlayNote('G', 4, 1);
+	fnPlayNote('G', 3, 1);
+	await sleep(200);
+
+
+	fnPlayNote('D#', 4, 4);
+	fnPlayNote('D#', 3, 4);
 }
