@@ -47,12 +47,16 @@ var g_circles = [];
 // anim controls
 var a_startTime;
 var a_currentCircleSearchIndex;
+var a_currentTime;
 
 
 function mainDraw(animCurrentTime, animDeltaTime) {
 	// do the drawing
 	// clear screen
 	ctx.clearRect(0, 0, cWidth, cHeight);
+
+	// update global
+	a_currentTime = animCurrentTime;
 
 	// draw lanes
 	drawGridLanes();
@@ -128,6 +132,37 @@ function drawGridLanes() {
 	}
 }
 
+function checkHits(lane) {
+	var currentTime = a_currentTime - a_startTime;
+	var currentTimeNorm = currentTime * test_json.speed / 1000;
+
+	var hitCircle = false;
+
+	for(var i = 0; i < g_circles.length; i++) {
+		var circle = g_circles[i];
+
+		if(circle.lane != lane) continue;
+
+		var circleHitTime = circle.startTime;
+		var deltaHit = currentTimeNorm - circleHitTime;
+		var deltaHitMs = deltaHit / test_json.speed * 1000;
+		var pixelsFromBar = deltaHitMs * circleSpeed;
+
+
+		if(pixelsFromBar > -50 && pixelsFromBar < 50) {
+			hitCircle = true;
+			// play anim
+			alert("hit");
+			// remove form array
+		}
+	}
+
+	if(!hitCircle) {
+		// fail game
+		alert("FAILED");
+	}
+}
+
 
 
 // key listner
@@ -143,6 +178,6 @@ function listenKeys(e) {
 		default: return;
 	}
 
-	alert("lane" + (lane + 1));
+	checkHits(lane);
 }
 
