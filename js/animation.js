@@ -266,7 +266,7 @@ function drawHitAnim() {
 
 		var grd = ctx.createLinearGradient(0, 4 * cHeight / 5 + delta * 2, 0, 3 * cHeight / 5);
 		grd.addColorStop(0, col);
-		grd.addColorStop(1, "white");
+		grd.addColorStop(1, "rgba(255, 255, 255, 0.0)");
 
 		// Fill with gradient
 		ctx.fillStyle = grd;
