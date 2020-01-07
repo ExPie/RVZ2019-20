@@ -49,8 +49,9 @@ var g_hitAnim = []; // (lane, timeStart, color)
 
 // anim controls
 var a_startTime;
-var a_currentCircleSearchIndex;
 var a_currentTime;
+var a_pause = true;
+var a_cantFail = false;
 
 
 function mainDraw(animCurrentTime, animDeltaTime) {
@@ -68,12 +69,8 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 	// draw circles
 	if(!a_startTime && animCurrentTime) {
 		a_startTime = animCurrentTime;
-
-		for(var i = 0; i < test_json.circles.length; i++)
-			g_circles.push(test_json.circles[i]);
-		//g_circles.push(test_json.circles[0]);
-		//g_circles.push(test_json.circles[1]);
 	}
+
 	drawCircles(a_currentTime);
 
 	// draw hit animations
@@ -84,15 +81,13 @@ function mainDraw(animCurrentTime, animDeltaTime) {
 // change demo data with actual data
 function parseData(midi) {
 
-
-
 	var customNote = [];
 
 	for(var i = 0; i < midi.tracks[0].notes.length; i++) {
 		var note = midi.tracks[0].notes[i];
 		console.log(note);
 		var jsonNote = {};
-		jsonNote["startTime"] = note.time * 1000 + 3000;
+		jsonNote.startTime = note.time * 1000 + 3000;
 		jsonNote.lane = i % 5;
 
 		var jsonNote2 = {};
@@ -107,7 +102,92 @@ function parseData(midi) {
 
 	test_json.circles = customNote;
 	console.log(test_json);
+
+	g_circles = [];
+	for(var i = 0; i < test_json.circles.length; i++)
+		g_circles.push(test_json.circles[i]);
+
 	startBasicAnimation();
+}
+
+function parseDataEasy(midi) {
+
+	var lowestPitch = 128;
+	var highestPitch = -1;
+	var avgPitch = 0;
+	var deltaPitch;
+
+	for(var i = 0; i < midi.tracks[0].notes.length; i++) {
+		var note = midi.tracks[0].notes[i];
+		var pitch = note.midi;
+
+		if(pitch < lowestPitch) lowestPitch = pitch;
+		if(pitch > highestPitch) highestPitch = pitch;
+		avgPitch += pitch;
+	}
+	avgPitch = Math.round(avgPitch / midi.tracks[0].notes.length);
+	deltaPitch = (highestPitch - lowestPitch) / 5;
+
+	var customNote = [];
+	var jsonCircle = undefined;
+
+	for(var i = 0; i < midi.tracks[0].notes.length; i++) {
+		var note = midi.tracks[0].notes[i];
+
+		if(!jsonCircle) {
+			jsonCircle = {};
+			jsonCircle.startTime = note.time * 1000 + 3000;
+			//jsonCircle.lane = i % 5; //defer
+			jsonCircle.notes = [];
+		}
+
+		var jsonNote2 = {};
+		jsonNote2.pitch = note.midi;
+		jsonNote2.duration = note.duration = note.duration * 1000;
+		if(jsonCircle.notes.length == 0) {
+			jsonNote2.delay = 0;
+		} else {
+			var firstNoteTime = jsonCircle.startTime;
+			jsonNote2.delay = note.time * 1000 + 3000 - firstNoteTime;
+		}
+		jsonCircle.notes.push(jsonNote2);
+
+		if(jsonCircle.notes.length == 3 || i == midi.tracks[0].notes.length - 1) {
+			var avgNotes = calculateAvgPitch(jsonCircle.notes);
+
+			if(avgNotes < avgPitch - 2 * deltaPitch) {
+				jsonCircle.lane = 0;
+			} else if(avgNotes < avgPitch - 1 * deltaPitch) {
+				jsonCircle.lane = 1;
+			} else if(avgNotes < avgPitch) {
+				jsonCircle.lane = 2;
+			} else if(avgNotes < avgPitch + 1 * deltaPitch) {
+				jsonCircle.lane = 3;
+			} else {
+				jsonCircle.lane = 4;
+			}
+
+			customNote.push(jsonCircle);
+			jsonCircle = undefined;
+		}
+	}
+
+	test_json.circles = customNote;
+	console.log(test_json);
+
+	g_circles = [];
+	for(var i = 0; i < test_json.circles.length; i++)
+		g_circles.push(test_json.circles[i]);
+
+	startBasicAnimation();
+}
+
+
+function calculateAvgPitch(notes) {
+	var sum = 0;
+	for(var i = 0; i < notes.length; i++)
+		sum += notes[i].pitch;
+	return Math.round(sum / notes.length);
 }
 
 // draws the circles from circle storage
@@ -213,7 +293,8 @@ function listenKeys(e) {
 		default: return;
 	}
 
-	checkHits(lane);
+	if(!a_pause)
+		checkHits(lane);
 }
 
 function checkHits(lane) {
@@ -243,22 +324,72 @@ function checkHits(lane) {
 
 			// remove form array
 			g_circles.splice(i, 1);
+
+			if(g_circles.length == 0)
+				victory();
 		}
 	}
 
-	if(!hitCircle) {
+	if(!hitCircle && !a_cantFail) {
 		// fail game
 		startFailAnim();
 	}
 }
 
-function startFailAnim() {
+async function startFailAnim() {
 	g_circles = [];
 
 	playFailSound();
 
 	for(var i = 0; i < 5; i++)
 		g_hitAnim.push([i, a_currentTime, "red"]);
+
+	await sleep(2000);
+
+	// reset game
+	a_pause = true;
+
+	a_startTime = undefined;
+	a_currentTime = undefined;
+
+	animStartTime = undefined;
+	animLastTime = undefined;
+	animTotalTime = undefined;
+	animDeltaTime = undefined; 
+
+	drawFailScreen();
+}
+
+async function victory() {
+
+	a_cantFail = true;
+
+	await sleep(3000);
+
+	g_circles = [];
+	var nts = ['F', 'G', 'A', 'B', 'C'];
+	var oct = [3, 3, 3, 3, 4]
+
+	for(var i = 0; i < 5; i++) {
+		g_hitAnim.push([i, a_currentTime, "green"]);
+		fnPlayNote(nts[i], oct[i], 1);
+		await sleep(100 + i * 80);
+	}
+
+	await sleep(1000);
+
+	// reset game
+	a_pause = true;
+
+	a_startTime = undefined;
+	a_currentTime = undefined;
+
+	animStartTime = undefined;
+	animLastTime = undefined;
+	animTotalTime = undefined;
+	animDeltaTime = undefined; 
+
+	drawVictoryScreen();
 }
 
 async function notePlayer(notes) {

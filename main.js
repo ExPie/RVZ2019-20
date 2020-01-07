@@ -119,9 +119,11 @@ function parseFile(file){
 		const midi = new Midi(e.target.result);
 		//console.log(JSON.stringify(midi, undefined, 2));
 		//console.log(midi); // its here!
-		parseData(midi);
+		parseDataEasy(midi);
 	}
 	reader.readAsArrayBuffer(file);
+
+	document.getElementById("filereader").value = null;
 }
 
 
@@ -136,7 +138,35 @@ function drawWelcomeScreen() {
 	ctx.fillText('Upload a MIDI file to start playing', cWidth / 2, 3 * cHeight / 4); 
 }
 
+function drawFailScreen() {
+	ctx.clearRect(0, 0, cWidth, cHeight);
+
+	ctx.textAlign = "center";
+	ctx.font = "48px sans-serif";
+	ctx.fillText('You have lost', cWidth / 2, cHeight / 4); 
+
+	ctx.font = "32px sans-serif";
+	ctx.fillText('Upload a MIDI file to start playing again', cWidth / 2, 3 * cHeight / 4); 
+}
+
+function drawVictoryScreen() {
+	ctx.clearRect(0, 0, cWidth, cHeight);
+
+	ctx.textAlign = "center";
+	ctx.font = "48px sans-serif";
+	ctx.fillText('GREAT SUCCESS!', cWidth / 2, cHeight / 4); 
+
+	ctx.font = "32px sans-serif";
+	ctx.fillText('Upload a MIDI file to start playing again', cWidth / 2, 3 * cHeight / 4); 
+}
+
 function startBasicAnimation() {
+	
+	a_pause = false;
+	a_cantFail = false;
+
+	g_hitAnim = [];
+
 	basicAnimFunc();
 }
 
@@ -148,6 +178,8 @@ function basicAnimFunc(animCurrentTime) {
 	animDeltaTime =animCurrentTime - animLastTime;
 	animLastTime = animCurrentTime;
 
+	// stop if paused
+	if(a_pause) return;
 	
 	mainDraw(animCurrentTime, animDeltaTime);
 
