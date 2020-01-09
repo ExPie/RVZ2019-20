@@ -338,6 +338,7 @@ function checkHits(lane) {
 
 async function startFailAnim() {
 	g_circles = [];
+	a_cantFail = true;
 
 	playFailSound();
 
