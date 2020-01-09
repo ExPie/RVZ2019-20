@@ -6,3 +6,9 @@ body {
 #mainCanvas {
 	outline: black 3px solid;
 }
+
+.center {
+    display: block;
+    margin: auto;
+    text-align: center;
+}
