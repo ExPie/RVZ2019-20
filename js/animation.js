@@ -231,7 +231,7 @@ function parseDataMed(midi) {
 
 			// place circles
 
-			if(lowChordNote < avgPitch - deltaPitch) jsonCircle.lane = 0;
+			if(calculateAvgPitchMidi(chordNotes) < avgPitch - deltaPitch) jsonCircle.lane = 0;
 			else if (lowChordNote < avgPitch + deltaPitch) jsonCircle.lane = 1;
 			else jsonCircle.lane = 2;
 
@@ -250,7 +250,7 @@ function parseDataMed(midi) {
 				// generate 1 more circle
 				var addCircle = {};
 				addCircle.startTime = note.time * 1000 + 3000;
-				addCircle.lane = jsonCircle.lane + pitchDiff > 5 ? 2 : 1;
+				addCircle.lane = jsonCircle.lane + (pitchDiff > 5 ? 2 : 1);
 				addCircle.notes = [];
 				addChordCircles.push(addCircle);
 			}
