@@ -104,10 +104,10 @@ function main() {
 
 	drawWelcomeScreen();
 
-	var button = document.getElementById("btn1");
-	button.addEventListener('click', function() {
-		startBasicAnimation();
-	}, false);
+	//var button = document.getElementById("btn1");
+	//button.addEventListener('click', function() {
+	//	startBasicAnimation();
+	//}, false);
 
 }
 
@@ -119,7 +119,7 @@ function parseFile(file){
 		const midi = new Midi(e.target.result);
 		//console.log(JSON.stringify(midi, undefined, 2));
 		//console.log(midi); // its here!
-		parseDataEasy(midi);
+		parseDataMed(midi);
 	}
 	reader.readAsArrayBuffer(file);
 

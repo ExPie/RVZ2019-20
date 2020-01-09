@@ -182,12 +182,211 @@ function parseDataEasy(midi) {
 	startBasicAnimation();
 }
 
+function parseDataMed(midi) {
+
+	var lowestPitch = 128;
+	var highestPitch = -1;
+	var avgPitch = 0;
+	var deltaPitch;
+
+	for(var i = 0; i < midi.tracks[0].notes.length; i++) {
+		var note = midi.tracks[0].notes[i];
+		var pitch = note.midi;
+
+		if(pitch < lowestPitch) lowestPitch = pitch;
+		if(pitch > highestPitch) highestPitch = pitch;
+		avgPitch += pitch;
+	}
+	avgPitch = Math.round(avgPitch / midi.tracks[0].notes.length);
+	deltaPitch = (highestPitch - lowestPitch) / 5;
+
+	var customNote = [];
+	var jsonCircle = undefined;
+
+	var i = 0;
+	while(i < midi.tracks[0].notes.length) {
+		var note = midi.tracks[0].notes[i];
+
+		if(!jsonCircle) {
+			jsonCircle = {};
+			jsonCircle.startTime = note.time * 1000 + 3000;
+			//jsonCircle.lane = i % 5; //defer
+			jsonCircle.notes = [];
+		}
+
+		// its not the last note and its a chord
+		if(i != midi.tracks[0].notes.length - 1 && midi.tracks[0].notes[i+1].time == note.time) {
+			// search for number of chord notes
+			var j = 2;
+			while(i+j != midi.tracks[0].notes.length && midi.tracks[0].notes[i+j].time == note.time) j++;
+
+			// assemble notes
+			var chordNotes = [];
+			for(var k = 0; k < j; k++) chordNotes.push(midi.tracks[0].notes[i + k]);
+
+			// calculate max pitch diff
+			var lowChordNote = calculateLowPitchMidi(chordNotes);
+			var pitchDiff = calculateHighPitchMidi(chordNotes) - lowChordNote;
+
+
+			// place circles
+
+			if(lowChordNote < avgPitch - deltaPitch) jsonCircle.lane = 0;
+			else if (lowChordNote < avgPitch + deltaPitch) jsonCircle.lane = 1;
+			else jsonCircle.lane = 2;
+
+			var addChordCircles = [];
+			// big chord
+			if(pitchDiff >= 5 && j > 2) {
+				// generate 2 more circles consec
+				for(var l = 0; l < 2; l++) {
+					var addCircle = {};
+					addCircle.startTime = note.time * 1000 + 3000;
+					addCircle.lane = jsonCircle.lane + l + 1;
+					addCircle.notes = [];
+					addChordCircles.push(addCircle);
+				}
+			} else { // small chord
+				// generate 1 more circle
+				var addCircle = {};
+				addCircle.startTime = note.time * 1000 + 3000;
+				addCircle.lane = jsonCircle.lane + pitchDiff > 5 ? 2 : 1;
+				addCircle.notes = [];
+				addChordCircles.push(addCircle);
+			}
+
+			// add addition notes in the < 100ms range
+			// search for number add notes
+			var k = 0;
+			while(i+j+k != midi.tracks[0].notes.length && midi.tracks[0].notes[i+j+k].time * 1000 - note.time * 1000 < 100) k++;
+			for(var l = 0; l < k; l++) chordNotes.push(midi.tracks[0].notes[i + j + k]);
+
+
+			// add notes to circle
+
+			for(var l = 0; l < chordNotes.length; l++) {
+				var currNote = chordNotes[l];
+				var jsonNote2 = {};
+				jsonNote2.pitch = currNote.midi;
+				jsonNote2.duration = currNote.duration * 1000;
+				if(jsonCircle.notes.length == 0) {
+					jsonNote2.delay = 0;
+				} else {
+					var firstNoteTime = jsonCircle.startTime;
+					jsonNote2.delay = currNote.time * 1000 + 3000 - firstNoteTime;
+				}
+				jsonCircle.notes.push(jsonNote2);
+			}
+
+			// add notes
+			customNote.push(jsonCircle);
+			customNote = customNote.concat(addChordCircles);
+			
+			jsonCircle = undefined;
+
+			i += j + k;
+
+		} else { // no chord -> treat as single note
+
+			var singleNotes = [];
+			// add addition notes in the < 400ms range
+			// search for number add notes
+			var k = 0;
+			while(i+k != midi.tracks[0].notes.length && midi.tracks[0].notes[i+k].time * 1000 - note.time * 1000 < 400) {
+				if(i+k+1 != midi.tracks[0].notes.length && midi.tracks[0].notes[i+k].time != midi.tracks[0].notes[i+k+1].time)
+					k++;
+				else break;
+			}
+			for(var l = 0; l < k; l++) singleNotes.push(midi.tracks[0].notes[i + k]);
+
+			// add them notes
+			for(var l = 0; l < k; l++) {
+				var jsonNote2 = {};
+				var currNote = midi.tracks[0].notes[i+l];
+				jsonNote2.pitch = currNote.midi;
+				jsonNote2.duration = currNote.duration * 1000;
+				if(jsonCircle.notes.length == 0) {
+					jsonNote2.delay = 0;
+				} else {
+					var firstNoteTime = jsonCircle.startTime;
+					jsonNote2.delay = currNote.time * 1000 + 3000 - firstNoteTime;
+				}
+				jsonCircle.notes.push(jsonNote2);
+			}
+
+			var avgNotes = calculateAvgPitch(jsonCircle.notes);
+
+			if(avgNotes < avgPitch - 1.5 * deltaPitch) {
+				jsonCircle.lane = 0;
+			} else if(avgNotes < avgPitch - 0.5 * deltaPitch) {
+				jsonCircle.lane = 1;
+			} else if(avgNotes < avgPitch) {
+				jsonCircle.lane = 2;
+			} else if(avgNotes < avgPitch + 1.5 * deltaPitch) {
+				jsonCircle.lane = 3;
+			} else {
+				jsonCircle.lane = 4;
+			}
+			
+			// add notes
+			customNote.push(jsonCircle);
+			jsonCircle = undefined;
+
+			i += k;
+		}
+	}
+
+	test_json.circles = customNote;
+	console.log(test_json);
+
+	g_circles = [];
+	for(var i = 0; i < test_json.circles.length; i++)
+		g_circles.push(test_json.circles[i]);
+
+	startBasicAnimation();
+}
+
 
 function calculateAvgPitch(notes) {
 	var sum = 0;
 	for(var i = 0; i < notes.length; i++)
 		sum += notes[i].pitch;
 	return Math.round(sum / notes.length);
+}
+
+function calculateLowPitch(notes) {
+	var low = 128;
+	for(var i = 0; i < notes.length; i++)
+		if(notes[i].pitch < low) low = notes[i].pitch;
+	return low;
+}
+
+function calculateHighPitch(notes) {
+	var high = -1;
+	for(var i = 0; i < notes.length; i++)
+		if(notes[i].pitch > high) high = notes[i].pitch;
+	return high;
+}
+
+function calculateAvgPitchMidi(notes) {
+	var sum = 0;
+	for(var i = 0; i < notes.length; i++)
+		sum += notes[i].midi;
+	return Math.round(sum / notes.length);
+}
+
+function calculateLowPitchMidi(notes) {
+	var low = 128;
+	for(var i = 0; i < notes.length; i++)
+		if(notes[i].midi < low) low = notes[i].midi;
+	return low;
+}
+
+function calculateHighPitchMidi(notes) {
+	var high = -1;
+	for(var i = 0; i < notes.length; i++)
+		if(notes[i].midi > high) high = notes[i].midi;
+	return high;
 }
 
 // draws the circles from circle storage
