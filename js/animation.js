@@ -297,12 +297,15 @@ function parseDataMed(midi) {
 					k++;
 				else break;
 			}
-			for(var l = 0; l < k; l++) singleNotes.push(midi.tracks[0].notes[i + k]);
+
+			if(k == 0) k = 1; // edge case
+
+			for(var l = 0; l < k; l++) singleNotes.push(midi.tracks[0].notes[i + l]);
 
 			// add them notes
 			for(var l = 0; l < k; l++) {
 				var jsonNote2 = {};
-				var currNote = midi.tracks[0].notes[i+l];
+				var currNote = singleNotes[l];
 				jsonNote2.pitch = currNote.midi;
 				jsonNote2.duration = currNote.duration * 1000;
 				if(jsonCircle.notes.length == 0) {
